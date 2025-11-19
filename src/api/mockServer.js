@@ -25,6 +25,15 @@ api.interceptors.request.use(async (config) => {
     const token = 'mock-token'
     return { data: { token }, status: 200, statusText: 'OK', headers: {}, config }
   }
+  if (url.includes('/auth/register') && method === 'post') {
+    const body = typeof data === 'string' ? JSON.parse(data) : data
+    // basic mock user creation
+    const user = { id: `u_${Date.now()}`, name: body.name || '', email: body.email || '', phone: body.phone || '' }
+    db.users.push(user)
+    // return a mock token
+    const token = `mock-token-${user.id}`
+    return { data: { ok: true, token, user }, status: 201, statusText: 'Created', headers: {}, config }
+  }
   if (url.includes('/scan/upload') && method === 'post') {
     const id = `scan_${Math.random().toString(36).slice(2,9)}`
     db.scans[id] = { ...fakeScanResult(id), status: 'processing' }

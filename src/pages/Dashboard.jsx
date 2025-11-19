@@ -12,9 +12,9 @@ const Dashboard = () => {
       <SectionContainer>
         <h2 className="text-xl font-semibold text-primary">Dashboard</h2>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">Crop Health: <div className="text-2xl font-bold">82%</div></Card>
-          <Card className="p-4">Active Scans: <div className="text-2xl font-bold">4</div></Card>
-          <Card className="p-4">Recommendations: <div className="text-2xl font-bold">5</div></Card>
+          <Card className="card--dark p-4">Crop Health: <div className="text-2xl font-bold">82%</div></Card>
+          <Card className="card--dark p-4">Active Scans: <div className="text-2xl font-bold">4</div></Card>
+          <Card className="card--dark p-4">Recommendations: <div className="text-2xl font-bold">5</div></Card>
         </div>
 
         <div className="mt-6">

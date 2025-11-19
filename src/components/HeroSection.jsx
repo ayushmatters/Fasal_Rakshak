@@ -1,7 +1,9 @@
 import React from 'react'
-// Use the static public path for the hero image to avoid bundling path issues.
-// The file exists at `public/hero.png` (copied from `src/assets/hero.png`).
-const HERO_PUBLIC_PATH = '/hero.png'
+import { motion } from 'framer-motion'
+import HeroAnimation from './HeroAnimation'
+// Prefer an environment-provided image URL (Vite): set `VITE_HERO_IMAGE` in .env
+// Fallback to the bundled public image `/hero.png`.
+const HERO_PUBLIC_PATH = import.meta.env.VITE_HERO_IMAGE || '/hero.png'
 import { Link } from 'react-router-dom'
 
 const LeafSVG = () => (
@@ -22,46 +24,39 @@ const LeafSVG = () => (
 
 const HeroSection = () => {
   return (
-    <section className="leaf-pattern">
-      <LeafSVG />
-      <div className="app-container">
-        <div className="z-10 animate-slideUp">
-          <h1>Fasal Rakshak — Smart Crop Protection</h1>
-          <p className="mt-4 max-w-xl">Detect and manage crop diseases with AI-driven insights, community support and access to trusted agri-products. Mobile-first, offline-capable scanning.</p>
-          <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <Link to="/scan" className="btn btn--primary">Scan Crop</Link>
-            <Link to="/signup" className="btn btn--outline">Get Started</Link>
-          </div>
-        </div>
-        <div className="z-10 animate-fadeIn mt-8 md:mt-0">
-          <div className="card border border-gray-100/40 shadow-sm">
-              {/* Hero image: wrapped for rounded corners + overlay */}
-              <div className="relative overflow-hidden rounded-md group">
-                <img
-                  src={HERO_PUBLIC_PATH}
-                  alt="Hero — farm illustration"
-                  loading="lazy"
-                  className="w-full h-72 sm:h-80 md:h-96 lg:h-[420px] object-cover"
-                  onError={(e) => {
-                    // If `/hero.png` fails to load (server/static issue), show a small inline SVG placeholder.
-                    // Avoid infinite loop by clearing onerror first.
-                    // eslint-disable-next-line no-param-reassign
-                    e.currentTarget.onerror = null
-                    // Small inline SVG placeholder (green background, 'hero' label).
-                    // Using a data URL ensures something visible shows immediately for debugging.
-                    /* eslint-disable-next-line no-param-reassign */
-                    e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='600'><rect width='100%' height='100%' fill='%230f5132'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='36' fill='%23ffffff'>Hero</text></svg>"
-                  }}
-                />
-                <div
-                  className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0f5132]/25 to-transparent transition-opacity duration-500 ease-in-out opacity-40 group-hover:opacity-70"
-                  aria-hidden="true"
-                />
+    <section className="leaf-pattern relative">
+      <HeroAnimation bg={<LeafSVG />}> 
+        {(transforms) => (
+          <div className="app-container grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div className="z-10">
+              <h1 className="text-3xl md:text-4xl font-bold">Fasal Rakshak — Smart Crop Protection</h1>
+              <p className="mt-4 max-w-xl">Detect and manage crop diseases with AI-driven insights, community support and access to trusted agri-products. Mobile-first, offline-capable scanning.</p>
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Link to="/scan" className="btn btn--primary">Scan Crop</Link>
+                <Link to="/signup" className="btn btn--outline">Get Started</Link>
               </div>
-            <div className="mt-4">Supported crops: Wheat, Rice, Potato, Tomato, etc.</div>
+            </div>
+
+            <div className="z-10 mt-8 md:mt-0">
+              <div className="card card--dark border border-gray-100/40 shadow-sm">
+                <div className="relative overflow-hidden rounded-md group">
+                  <div
+                    className="w-full h-72 sm:h-80 md:h-96 lg:h-[420px] bg-center bg-cover"
+                    style={{ backgroundImage: `url(${HERO_PUBLIC_PATH})`, transform: transforms?.mid ? transforms.mid.transform : undefined }}
+                    role="img"
+                    aria-label="Hero — farm illustration"
+                  />
+                  <div
+                    className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0f5132]/25 to-transparent transition-opacity duration-500 ease-in-out opacity-40 group-hover:opacity-70"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="mt-4">Supported crops: Wheat, Rice, Potato, Tomato, etc.</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </HeroAnimation>
     </section>
   )
 }

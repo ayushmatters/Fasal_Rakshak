@@ -2,6 +2,7 @@ import api from './apiClient'
 
 export const sendOtp = (phone) => api.post('/auth/send-otp', { phone })
 export const verifyOtp = (phone, otp) => api.post('/auth/verify', { phone, otp })
+export const register = (body) => api.post('/auth/register', body)
 export const uploadScanImage = (file) => {
   const fd = new FormData()
   fd.append('image', file)
