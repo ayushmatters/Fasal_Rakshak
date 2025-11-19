@@ -32,7 +32,14 @@ const HeroSection = () => {
         </div>
         <div className="z-10 animate-fadeIn mt-8 md:mt-0">
           <div className="card">
-            <img src="/src/assets/logo.svg" alt="farm illustration" className="w-full object-cover rounded-md" />
+              {/* Hero image as background container. Place your image at
+                  `src/assets/hero.jpg` or update the URL below. */}
+              <div
+                className="hero-image rounded-md"
+                role="img"
+                aria-label="Farm illustration"
+                style={{ backgroundImage: "url('/src/assets/hero.jpg')" }}
+              />
             <div className="mt-4">Supported crops: Wheat, Rice, Potato, Tomato, etc.</div>
           </div>
         </div>
