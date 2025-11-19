@@ -5,7 +5,7 @@ import Card from '../components/Card'
 const Dashboard = () => {
   const recent = [
     { id: 1, name: 'Wheat Scan', date: '2025-11-10', disease: 'Leaf Blight' },
-    { id: 2, name: 'Tomato Scan', date: '2025-11-12', disease: 'Early Blight' }
+    
   ]
   return (
     <div>

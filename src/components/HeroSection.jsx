@@ -1,4 +1,7 @@
 import React from 'react'
+// Use the static public path for the hero image to avoid bundling path issues.
+// The file exists at `public/hero.png` (copied from `src/assets/hero.png`).
+const HERO_PUBLIC_PATH = '/hero.png'
 import { Link } from 'react-router-dom'
 
 const LeafSVG = () => (
@@ -31,15 +34,30 @@ const HeroSection = () => {
           </div>
         </div>
         <div className="z-10 animate-fadeIn mt-8 md:mt-0">
-          <div className="card">
-              {/* Hero image as background container. Place your image at
-                  `src/assets/hero.jpg` or update the URL below. */}
-              <div
-                className="hero-image rounded-md"
-                role="img"
-                aria-label="Farm illustration"
-                style={{ backgroundImage: "url('/src/assets/hero.jpg')" }}
-              />
+          <div className="card border border-gray-100/40 shadow-sm">
+              {/* Hero image: wrapped for rounded corners + overlay */}
+              <div className="relative overflow-hidden rounded-md group">
+                <img
+                  src={HERO_PUBLIC_PATH}
+                  alt="Hero — farm illustration"
+                  loading="lazy"
+                  className="w-full h-72 sm:h-80 md:h-96 lg:h-[420px] object-cover"
+                  onError={(e) => {
+                    // If `/hero.png` fails to load (server/static issue), show a small inline SVG placeholder.
+                    // Avoid infinite loop by clearing onerror first.
+                    // eslint-disable-next-line no-param-reassign
+                    e.currentTarget.onerror = null
+                    // Small inline SVG placeholder (green background, 'hero' label).
+                    // Using a data URL ensures something visible shows immediately for debugging.
+                    /* eslint-disable-next-line no-param-reassign */
+                    e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='600'><rect width='100%' height='100%' fill='%230f5132'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='36' fill='%23ffffff'>Hero</text></svg>"
+                  }}
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0f5132]/25 to-transparent transition-opacity duration-500 ease-in-out opacity-40 group-hover:opacity-70"
+                  aria-hidden="true"
+                />
+              </div>
             <div className="mt-4">Supported crops: Wheat, Rice, Potato, Tomato, etc.</div>
           </div>
         </div>

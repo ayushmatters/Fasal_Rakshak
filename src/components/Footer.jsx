@@ -31,7 +31,7 @@ const Footer = () => (
         </p>
       </div>
     </div>
-    <div>
+    <div className="w-full text-center mt-6 text-text-muted">
       © {new Date().getFullYear()} Fasal Rakshak. All rights reserved.
     </div>
   </footer>
