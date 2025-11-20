@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { register as registerUser } from '../api/endpoints'
+import { signup as registerUser } from '../api/endpoints'
 import { useNavigate } from 'react-router-dom'
 
 const SignupSection = () => {

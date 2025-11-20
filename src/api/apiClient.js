@@ -1,7 +1,24 @@
 import axios from 'axios'
 
+const resolveBaseUrl = () => {
+  // Prefer Vite's import.meta.env in the browser. Access it dynamically
+  // to avoid static parsing issues in Node/Jest.
+  try {
+    const viteMeta = new Function('return import.meta')()
+    if (viteMeta && viteMeta.env && viteMeta.env.VITE_API_URL) return viteMeta.env.VITE_API_URL
+  } catch (e) {
+    // Not running in an environment with import.meta (e.g. Jest/Node)
+  }
+
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_API_URL) {
+    return process.env.VITE_API_URL
+  }
+
+  return 'http://localhost:5000'
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5174',
+  baseURL: resolveBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000
 })
@@ -12,8 +29,13 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-if (import.meta.env.DEV) {
-  import('./mockServer')
+try {
+  const viteMeta = new Function('return import.meta')()
+  if (viteMeta && viteMeta.env && viteMeta.env.DEV) {
+    import('./mockServer')
+  }
+} catch (e) {
+  // not running in Vite (e.g. Jest)
 }
 
 export default api

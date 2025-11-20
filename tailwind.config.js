@@ -3,54 +3,45 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        /* Dark Green Theme */
-        'primary-bg': '#062d01ff',
-        'primary-dark': '#051f10',
-        'primary-light': '#0f3d2a',
-        'accent': '#8fc76e',
-        'accent-light': '#b8e5a0',
-        'accent-dark': '#6fa850',
-        'text-neutral': '#e9f5ea',
-        'text-muted': '#9bb49b',
-        'text-strong': '#ffffff',
-        
-        /* Legacy colors for compatibility */
-        primary: '#18A558',
-        brand: {
-          500: '#18A558',
-          700: '#0F6B3C'
+        primary: {
+          DEFAULT: '#1e9a3a',
+          600: '#198433',
+          700: '#14682a'
         },
-        leaf: '#C8E6C9',
-        muted: '#6B7280',
+        accent: {
+          DEFAULT: '#8fc76e',
+          100: '#e8f7e8'
+        },
+        bg: {
+          page: '#f6fff8',
+          hero: '#f6fff8'
+        },
+        surface: '#ffffff',
+        text: {
+          DEFAULT: '#07211a',
+          muted: '#5b6b60'
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial']
+        heading: ['Poppins', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto']
       },
       borderRadius: {
-        md: '12px',
-        sm: '8px'
+        md: '14px',
+        sm: '10px'
       },
       boxShadow: {
-        card: '0 6px 18px rgba(0, 0, 0, 0.15)'
+        card: '0 12px 32px rgba(6, 24, 15, 0.08)',
+        cardLg: '0 18px 44px rgba(6, 24, 15, 0.12)'
       },
       keyframes: {
         slideUp: { 
           '0%': { transform: 'translateY(16px)', opacity: 0 }, 
           '100%': { transform: 'translateY(0)', opacity: 1 } 
-        },
-        slideIn: {
-          '0%': { transform: 'translateX(-8px)', opacity: 0 },
-          '100%': { transform: 'translateX(0)', opacity: 1 }
         }
       },
       animation: {
-        fadeIn: 'fadeIn 420ms ease-out both',
-        slideUp: 'slideUp 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
-        slideIn: 'slideIn 400ms ease-out both',
-        'pulse-soft': 'pulse 3s ease-in-out infinite'
-      },
-      backgroundImage: {
-        'gradient-primary': 'linear-gradient(180deg, #0d2b1a, #051f10)'
+        slideUp: 'slideUp 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both'
       }
     }
   },

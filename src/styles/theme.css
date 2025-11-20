@@ -1,0 +1,65 @@
+/* Small theme helpers: glass, micro-interactions, utility helpers */
+
+/* Glass effect used for cards over soft backgrounds */
+.u-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+/* Elevated card */
+.u-card-elevated {
+  box-shadow: var(--card-shadow-strong);
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
+}
+.u-card-elevated:hover {
+  transform: translateY(-6px);
+}
+
+/* Buttons: focus, accessible rings */
+.u-btn-focus:focus {
+  outline: none;
+  box-shadow: 0 6px 20px rgba(30,154,58,0.12), var(--focus-ring);
+  border-radius: 10px;
+}
+
+/* Micro interactions: subtle scale on hover */
+.u-hover-scale {
+  will-change: transform;
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1);
+}
+.u-hover-scale:hover { transform: scale(1.02); }
+
+/* Image card micro-parallax on hover */
+.u-image-parallax { overflow: hidden; border-radius: 10px; }
+.u-image-parallax img { transition: transform 700ms cubic-bezier(.2,.9,.3,1); }
+.u-image-parallax:hover img { transform: scale(1.06) translateY(-6px); }
+
+/* Focus visible util */
+.u-focus-visible:focus-visible { box-shadow: 0 8px 26px rgba(30,154,58,0.12); outline: none; }
+
+/* Small helpers */
+.text-accent { color: var(--color-primary); }
+.bg-accent { background-color: var(--color-primary); }
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-weight: 600;
+}
+.btn-primary:hover { background-color: var(--color-primary-600); transform: translateY(-2px); }
+
+/* Ensure backdrop-filter utilities available */
+.backdrop-blur-md { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+/* Ensure mobile-first vertical rhythm */
+.section { padding: 48px 0; }
+@media (min-width: 768px) { .section { padding: 64px 0; } }
+
+/* Minimal namespacing: .theme- prefix for bespoke helpers */
+.theme-glass { background: var(--glass-bg); border-radius: var(--radius-md); }

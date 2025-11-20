@@ -2,16 +2,7 @@ import React, { useState, useCallback } from 'react'
 import ScanResultCard from './ScanResultCard'
 import useOfflineQueue from '../../hooks/useOfflineQueue'
 import useNetworkStatus from '../../hooks/useNetworkStatus'
-
-const fakeUploader = async (filePayload) => {
-  await new Promise((r) => setTimeout(r, 800))
-  return {
-    disease: 'Leaf Blight',
-    confidence: 0.82,
-    recommendations: ['Remove infected leaves', 'Apply fungicide'],
-    timestamp: Date.now()
-  }
-}
+import { uploadScanImage, startScanProcessing, getScanResult } from '../../api/endpoints'
 
 const ScanPage = () => {
   const [result, setResult] = useState(null)
@@ -30,9 +21,26 @@ const ScanPage = () => {
 
     try {
       setMessage('Uploading...')
-      const res = await fakeUploader(payload)
-      setResult(res)
-      setMessage('Upload successful')
+      // Upload to server
+      const resp = await uploadScanImage(file)
+      const id = resp?.data?.id || resp?.data?.scan?._id
+      setMessage('Upload accepted, processing...')
+      await startScanProcessing(id)
+      // Poll for result
+      let attempts = 0
+      const poll = async () => {
+        attempts += 1
+        const r = await getScanResult(id)
+        if (r.data && r.data.status === 'complete') {
+          setResult(r.data.result)
+          setMessage('Scan completed')
+        } else if (attempts < 10) {
+          setTimeout(poll, 700)
+        } else {
+          setMessage('Scan still processing; please refresh later')
+        }
+      }
+      poll()
     } catch (e) {
       setMessage('Upload failed — queued for retry')
       enqueue(payload)

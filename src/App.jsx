@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard'
 import Community from './pages/Community'
 import Products from './pages/Products'
 import ScanResultCard from './features/scan/ScanResultCard'
+import Signup from './pages/Signup'
+import Login from './pages/Login'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const App = () => {
   return (
@@ -17,9 +20,11 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/scan" element={<ScanPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/community" element={<Community />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/result" element={<div className="max-w-2xl mx-auto p-4"><ScanResultCard result={{ disease: 'Leaf Blight', confidence: 0.8, recommendations: ['Remove leaves'], timestamp: Date.now() }} /></div>} />
         </Routes>
       </main>

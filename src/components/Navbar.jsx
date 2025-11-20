@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SignupSection from './SignupSection'
+import { useAuth } from '../app/AuthProvider'
 
 const NavLink = ({ to, children }) => (
   <Link to={to} className="text-sm text-text-muted hover:text-accent px-3 py-2 rounded transition-colors">{children}</Link>
@@ -9,6 +10,8 @@ const NavLink = ({ to, children }) => (
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   return (
     <header>
       <div className="app-container flex items-center justify-between">
@@ -29,13 +32,17 @@ const Navbar = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
-            className="inline-block px-4 py-2 bg-primary text-white rounded-md shadow hover:opacity-95"
-            onClick={() => setSignupOpen(true)}
-            aria-label="Sign up"
-          >
-            Sign Up
-          </button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-text-muted">Hello, <strong className="text-accent">{user.name}</strong></span>
+              <button className="px-3 py-2 bg-secondary text-white rounded" onClick={() => { logout(); navigate('/') }}>Logout</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="inline-block px-4 py-2 bg-transparent border border-primary text-primary rounded-md hover:bg-primary/5">Sign In</Link>
+              <Link to="/signup" className="inline-block px-4 py-2 bg-primary text-white rounded-md shadow hover:opacity-95">Sign Up</Link>
+            </div>
+          )}
           <div className="md:hidden">
            <button 
              aria-label="Toggle menu" 

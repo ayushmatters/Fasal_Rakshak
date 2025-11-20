@@ -3,39 +3,36 @@
    All colors tested for WCAG AA contrast compliance.
 */
 :root {
-  /* Brand Colors - Dark Green Theme */
-  --primary-bg: #0d2b1a;
-  --primary-dark: #051f10;
-  --primary-light: #0f3d2a;
-  --accent: #8fc76e;
-  --accent-light: #b8e5a0;
-  --accent-dark: #6fa850;
+  /* Palette derived from reference (light mint site with green CTA) */
+  --color-primary: #1e9a3a;        /* main CTA green */
+  --color-primary-600: #198433;
+  --color-primary-700: #14682a;
+  --color-accent: #8fc76e;         /* softer green used for accents */
+  --color-accent-100: #e8f7e8;
 
-  /* Neutral & Text */
-  --text-neutral: #e9f5ea;
-  --text-muted: #9bb49b;
-  /* Text colors for light surfaces (cards, panels with white background) */
-  --text-on-light: #0b3f1e;
-  /* Slightly darker placeholder / muted color for better visibility on light cards */
-  --muted-on-light: #4b6e55;
-  --heading-on-light: #08331c;
-  --text-strong: #ffffff;
+  /* Backgrounds & surfaces */
+  --bg-page: #f6fff8;              /* very light mint background */
+  --bg-hero: linear-gradient(180deg, #f9fff9 0%, #effff1 100%);
+  --surface: #ffffff;              /* white cards */
 
-  /* Legacy brand for compatibility */
-  --brand-500: #18A558;
-  --brand-700: #0F6B3C;
-  --leaf-100: #F0FFF4;
+  /* Text */
+  --text-default: #07211a;         /* dark heading text */
+  --text-muted: #5b6b60;           /* secondary text */
+  --text-on-dark: #f7fff8;
+  --text-on-light: #07211a;
 
-  /* Spacing and Size Tokens */
-  --card-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  --focus-ring: 2px solid rgba(143, 199, 110, 0.5);
+  /* Tokens */
+  --card-shadow: 0 12px 32px rgba(6, 24, 15, 0.08);
+  --card-shadow-strong: 0 18px 44px rgba(6, 24, 15, 0.12);
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --font-heading: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --focus-ring: 3px solid rgba(30, 154, 58, 0.14);
 
-  /* Backgrounds */
-  --bg-gradient-start: #0d2b1a;
-  --bg-gradient-end: #051f10;
+  /* Utility */
+  --glass-bg: rgba(255,255,255,0.6);
+  --glass-blur: 8px;
 }
 
 /* Reduced motion support */

@@ -1,16 +1,28 @@
 import api from './apiClient'
 
-export const sendOtp = (phone) => api.post('/auth/send-otp', { phone })
-export const verifyOtp = (phone, otp) => api.post('/auth/verify', { phone, otp })
-export const register = (body) => api.post('/auth/register', body)
+// Auth
+export const signup = (body) => api.post('/api/auth/signup', body)
+export const login = (body) => api.post('/api/auth/login', body)
+export const getMe = () => api.get('/api/auth/me')
+
+// Scan upload & results
 export const uploadScanImage = (file) => {
   const fd = new FormData()
   fd.append('image', file)
-  return api.post('/scan/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return api.post('/api/scan/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
-export const getScanResult = (scanId) => api.get(`/scan/result/${scanId}`)
-export const getHeatmap = () => api.get('/heatmap')
-export const getCommunityPosts = () => api.get('/community/posts')
-export const createPost = (body) => api.post('/community/posts', body)
-export const getProducts = () => api.get('/products')
-export const checkout = (cart) => api.post('/checkout', { cart })
+export const getScanResult = (scanId) => api.get(`/api/scan/${scanId}`)
+export const startScanProcessing = (scanId) => api.post(`/api/scan/process/${scanId}`)
+
+// Community
+export const getCommunityPosts = () => api.get('/api/community')
+export const createPost = (body) => api.post('/api/community', body)
+
+// Products
+export const getProducts = () => api.get('/api/products')
+export const createProduct = (body) => api.post('/api/products', body)
+
+// Auth logout
+export const logout = () => api.post('/api/auth/logout')
+
+// Misc (legacy or frontend-only endpoints should be added here as needed)
