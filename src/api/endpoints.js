@@ -3,6 +3,8 @@ import api from './apiClient'
 // Auth
 export const signup = (body) => api.post('/api/auth/signup', body)
 export const login = (body) => api.post('/api/auth/login', body)
+export const verifyOtp = (body) => api.post('/api/auth/verify-otp', body)
+export const resendOtp = (body) => api.post('/api/auth/resend-otp', body)
 export const getMe = () => api.get('/api/auth/me')
 
 // Scan upload & results

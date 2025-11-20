@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Verify Your Email</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:#f6fbfb; color:#0f172a; }
+    .container { max-width:600px; margin:32px auto; background:#fff; border-radius:12px; padding:24px; box-shadow:0 6px 18px rgba(6,8,17,0.08);} 
+    .otp { display:block; margin:20px auto; font-size:28px; letter-spacing:6px; font-weight:700; background:linear-gradient(90deg,#06b6d4,#34d399); color:#fff; width:180px; text-align:center; padding:12px 0; border-radius:8px;}
+    .small { color:#64748b; font-size:13px }
+    a.button { display:inline-block; background:#06b6d4; color:#06202a; padding:10px 14px; border-radius:8px; text-decoration:none; font-weight:600 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="margin:0 0 8px 0">Fasal Rakshak — Verify your email</h2>
+    <p class="small">Hi,</p>
+    <p class="small">Use the code below to verify your email address. This OTP expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+    <div class="otp">{{OTP}}</div>
+    <p class="small">If you didn't try to sign up, you can safely ignore this message.</p>
+    <p class="small">If the button below doesn't work, you can paste the OTP into the verification screen in the app.</p>
+    <p><a class="button" href="{{VERIFICATION_LINK}}">Verify your email</a></p>
+    <hr />
+    <p class="small">This is a demo email for development. In production, don't include local file paths or developer recordings.</p>
+    <p class="small">Demo video (dev only): /mnt/data/Recording 2025-11-19 203905.mp4</p>
+  </div>
+</body>
+</html>

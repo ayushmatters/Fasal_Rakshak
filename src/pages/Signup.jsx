@@ -17,8 +17,12 @@ const Signup = () => {
     setLoading(true)
     try {
       const res = await signup(form)
-      if (res && res.data && res.data.token) {
-        navigate('/dashboard')
+      // Signup now initiates OTP flow: server returns { message, userId }
+      if (res && res.data && res.data.userId) {
+        // Temporarily save userId/email for verification
+        sessionStorage.setItem('pending_userId', res.data.userId)
+        sessionStorage.setItem('pending_email', form.email)
+        navigate('/verify-otp')
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Signup failed')

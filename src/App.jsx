@@ -10,6 +10,7 @@ import Products from './pages/Products'
 import ScanResultCard from './features/scan/ScanResultCard'
 import Signup from './pages/Signup'
 import Login from './pages/Login'
+import VerifyOtp from './pages/VerifyOtp'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/products" element={<Products />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/result" element={<div className="max-w-2xl mx-auto p-4"><ScanResultCard result={{ disease: 'Leaf Blight', confidence: 0.8, recommendations: ['Remove leaves'], timestamp: Date.now() }} /></div>} />
         </Routes>

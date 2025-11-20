@@ -31,8 +31,16 @@ export const AuthProvider = ({ children }) => {
     init()
   }, [])
 
+  // NOTE: signup now initiates OTP flow. Server responds with { message, userId }
+  // Client should not set token until verification completes.
   const signup = async ({ name, email, password }) => {
     const res = await apiSignup({ name, email, password })
+    return res
+  }
+
+  const login = async ({ email, password }) => {
+    const res = await apiLogin({ email, password })
+    // If server returns 403 (not verified), propagate message so UI can show resend option
     if (res && res.data && res.data.token) {
       localStorage.setItem('token', res.data.token)
       setUser(res.data.user)
@@ -40,12 +48,18 @@ export const AuthProvider = ({ children }) => {
     return res
   }
 
-  const login = async ({ email, password }) => {
-    const res = await apiLogin({ email, password })
+  // Verify OTP and finalize signup: server returns token + user
+  const verifyOtp = async ({ userId, email, otp }) => {
+    const res = await (await import('../api/endpoints')).verifyOtp({ userId, email, otp })
     if (res && res.data && res.data.token) {
       localStorage.setItem('token', res.data.token)
       setUser(res.data.user)
     }
+    return res
+  }
+
+  const resendOtp = async ({ userId, email }) => {
+    const res = await (await import('../api/endpoints')).resendOtp({ userId, email })
     return res
   }
 
@@ -58,7 +72,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signup, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, signup, login, logout, verifyOtp, resendOtp }}>
       {children}
     </AuthContext.Provider>
   )

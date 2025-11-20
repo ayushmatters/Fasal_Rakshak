@@ -19,6 +19,11 @@ const Login = () => {
       const res = await login(form)
       if (res && res.data && res.data.token) {
         navigate('/dashboard')
+      } else if (res && res.status === 403) {
+        // Not verified
+        setError('Email not verified — check your email or resend OTP')
+        sessionStorage.setItem('pending_email', form.email)
+        navigate('/verify-otp')
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed')
