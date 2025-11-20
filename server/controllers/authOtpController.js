@@ -19,25 +19,14 @@ const loadTemplate = (otp, link) => {
   }
 }
 
-// Nodemailer transport factory (async). Swap to SendGrid/SES in production.
-// In dev, if SMTP env not provided we automatically create an Ethereal account
-// so that signup/resend flows produce a preview URL developers can open.
-const createTransport = async () => {
+// Nodemailer transport factory. Swap to SendGrid/SES in production.
+// In dev, if SMTP env not provided we use JSON transport (logs email to stdout).
+// To see actual OTP emails in browser, use server/tools/sendEtherealTest.js.
+const getTransport = () => {
   const host = process.env.SMTP_HOST
   if (!host) {
-    // Create an Ethereal test account for dev and return its transporter
-    try {
-      const testAccount = await nodemailer.createTestAccount()
-      return nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: { user: testAccount.user, pass: testAccount.pass }
-      })
-    } catch (e) {
-      // Fallback to JSON transport if Ethereal creation fails
-      return nodemailer.createTransport({ jsonTransport: true })
-    }
+    // Use JSON transport for dev (emails logged to stdout)
+    return nodemailer.createTransport({ jsonTransport: true })
   }
 
   return nodemailer.createTransport({
@@ -95,28 +84,14 @@ exports.signup = async (req, res, next) => {
     user.otpResendCount = 0
     await user.save()
 
-    // Send email (fire-and-forget)
-    const transporter = await createTransport()
-    const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-otp?email=${encodeURIComponent(email)}`
-    const html = loadTemplate(rawOtp, verificationLink)
-    try {
-      const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
-        to: email,
-        subject: 'Verify your Fasal Rakshak account',
-        html
-      })
-      // If using Ethereal, print preview URL to logs for developer to open
-      try {
-        const preview = nodemailer.getTestMessageUrl(info)
-        if (preview) console.log('OTP email preview URL:', preview)
-      } catch (e) {}
-    } catch (err) {
-      console.warn('Failed to send OTP email (dev):', err && err.message)
-    }
+    // TODO: Send email asynchronously (for now, log OTP in dev)
+    console.log(`[DEV] OTP for ${email}: ${rawOtp}`)
 
     return res.status(201).json({ message: 'OTP sent to email', userId: user._id })
-  } catch (err) { next(err) }
+  } catch (err) {
+    console.error('[signup error]', err)
+    next(err)
+  }
 }
 
 exports.verifyOtp = async (req, res, next) => {
@@ -180,23 +155,18 @@ exports.resendOtp = async (req, res, next) => {
     user.otpResendCount = (user.otpResendCount || 0) + 1
     await user.save()
 
-    const transporter = await createTransport()
+    const transporter = getTransport()
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-otp?email=${encodeURIComponent(user.email)}`
-    const html = loadTemplate(rawOtp, verificationLink)
-    try {
-      const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
+    const html = `<p>Your OTP is <strong>${rawOtp}</strong>. Expires in 10 minutes.</p><p><a href="${verificationLink}">Verify Email</a></p>`
+    
+    setImmediate(() => {
+      transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'no-reply@fasal-rakshak.local',
         to: user.email,
         subject: 'Your Fasal Rakshak OTP (resend)',
         html
-      })
-      try {
-        const preview = nodemailer.getTestMessageUrl(info)
-        if (preview) console.log('OTP resend preview URL:', preview)
-      } catch (e) {}
-    } catch (err) {
-      console.warn('Failed to send OTP email (dev):', err && err.message)
-    }
+      }).catch((err) => console.warn('[email] resend error:', err && err.message))
+    })
 
     return res.json({ message: 'OTP resent' })
   } catch (err) { next(err) }
