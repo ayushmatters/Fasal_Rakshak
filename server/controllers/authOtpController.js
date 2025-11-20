@@ -19,14 +19,25 @@ const loadTemplate = (otp, link) => {
   }
 }
 
-// Nodemailer transport (dev). Swap to SendGrid/SES in production.
-const createTransport = () => {
+// Nodemailer transport factory (async). Swap to SendGrid/SES in production.
+// In dev, if SMTP env not provided we automatically create an Ethereal account
+// so that signup/resend flows produce a preview URL developers can open.
+const createTransport = async () => {
   const host = process.env.SMTP_HOST
   if (!host) {
-    // Use ethereal for dev convenience if SMTP not configured
-    return nodemailer.createTransport({
-      jsonTransport: true
-    })
+    // Create an Ethereal test account for dev and return its transporter
+    try {
+      const testAccount = await nodemailer.createTestAccount()
+      return nodemailer.createTransport({
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        secure: testAccount.smtp.secure,
+        auth: { user: testAccount.user, pass: testAccount.pass }
+      })
+    } catch (e) {
+      // Fallback to JSON transport if Ethereal creation fails
+      return nodemailer.createTransport({ jsonTransport: true })
+    }
   }
 
   return nodemailer.createTransport({
@@ -85,15 +96,24 @@ exports.signup = async (req, res, next) => {
     await user.save()
 
     // Send email (fire-and-forget)
-    const transporter = createTransport()
+    const transporter = await createTransport()
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-otp?email=${encodeURIComponent(email)}`
     const html = loadTemplate(rawOtp, verificationLink)
-    transporter.sendMail({
-      from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
-      to: email,
-      subject: 'Verify your Fasal Rakshak account',
-      html
-    }).catch((err) => console.warn('Failed to send OTP email (dev):', err && err.message))
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
+        to: email,
+        subject: 'Verify your Fasal Rakshak account',
+        html
+      })
+      // If using Ethereal, print preview URL to logs for developer to open
+      try {
+        const preview = nodemailer.getTestMessageUrl(info)
+        if (preview) console.log('OTP email preview URL:', preview)
+      } catch (e) {}
+    } catch (err) {
+      console.warn('Failed to send OTP email (dev):', err && err.message)
+    }
 
     return res.status(201).json({ message: 'OTP sent to email', userId: user._id })
   } catch (err) { next(err) }
@@ -160,15 +180,23 @@ exports.resendOtp = async (req, res, next) => {
     user.otpResendCount = (user.otpResendCount || 0) + 1
     await user.save()
 
-    const transporter = createTransport()
+    const transporter = await createTransport()
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-otp?email=${encodeURIComponent(user.email)}`
     const html = loadTemplate(rawOtp, verificationLink)
-    transporter.sendMail({
-      from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
-      to: user.email,
-      subject: 'Your Fasal Rakshak OTP (resend)',
-      html
-    }).catch((err) => console.warn('Failed to send OTP email (dev):', err && err.message))
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || `no-reply@${process.env.SMTP_HOST || 'localhost'}`,
+        to: user.email,
+        subject: 'Your Fasal Rakshak OTP (resend)',
+        html
+      })
+      try {
+        const preview = nodemailer.getTestMessageUrl(info)
+        if (preview) console.log('OTP resend preview URL:', preview)
+      } catch (e) {}
+    } catch (err) {
+      console.warn('Failed to send OTP email (dev):', err && err.message)
+    }
 
     return res.json({ message: 'OTP resent' })
   } catch (err) { next(err) }

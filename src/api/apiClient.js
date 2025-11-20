@@ -24,8 +24,10 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('fasal_token') || localStorage.getItem('token')
   if (token) config.headers = config.headers || {}, config.headers.Authorization = `Bearer ${token}`
+  // Helpful debug: which baseURL is being used (visible in dev console/network logs)
+  try { console.debug('[apiClient] baseURL=', api.defaults.baseURL) } catch (e) {}
   return config
 })
 

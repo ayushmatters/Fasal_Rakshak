@@ -19,13 +19,28 @@ connectDB().catch((err) => {
 const app = express()
 
 // Middlewares
+// CORS: allow local dev frontends. In production, lock this down to your real origin.
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'],
+  origin: (origin, cb) => {
+    // allow non-browser requests (e.g. curl) where origin is undefined
+    if (!origin) return cb(null, true)
+    // allow any localhost origin during development (Vite may pick different ports)
+    if (origin.includes('localhost') || origin === process.env.FRONTEND_URL) return cb(null, true)
+    return cb(new Error('Not allowed by CORS'))
+  },
   credentials: true
 }))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(morgan('dev'))
+
+// In dev, log incoming requests with origin for easier CORS debugging
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.debug('[req]', req.method, req.originalUrl, 'Origin:', req.headers.origin || 'none')
+    return next()
+  })
+}
 
 // Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
