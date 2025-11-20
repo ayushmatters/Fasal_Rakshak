@@ -10,10 +10,16 @@ const dotenv = require('dotenv')
 dotenv.config()
 
 const connectDB = require('./config/db')
+const { initTransporter } = require('./config/emailTransporter')
 
 // Connect to DB (async, non-blocking)
 connectDB().catch((err) => {
   console.error('Database connection failed, but server will start anyway')
+})
+
+// Initialize email transporter (async, non-blocking)
+initTransporter().catch((err) => {
+  console.error('Email transporter initialization error (non-fatal):', err.message)
 })
 
 const app = express()
@@ -56,6 +62,11 @@ app.use('/api/scan', require('./routes/scan'))
 app.use('/api/products', require('./routes/products'))
 app.use('/api/community', require('./routes/community'))
 
+// Debug routes (for email testing and diagnostics)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/debug', require('./routes/debug'))
+}
+
 // Error handler (last)
 const { errorHandler } = require('./middleware/errorHandler')
 app.use(errorHandler)
@@ -86,3 +97,4 @@ const startServer = (port) => {
 }
 
 startServer(PORT)
+

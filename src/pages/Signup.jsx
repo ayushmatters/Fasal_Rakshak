@@ -17,15 +17,21 @@ const Signup = () => {
     setLoading(true)
     try {
       const res = await signup(form)
-      // Signup now initiates OTP flow: server returns { message, userId }
-      if (res && res.data && res.data.userId) {
+      // Signup now initiates OTP flow: server returns { ok: true, userId, message }
+      // Only proceed if backend confirms email was sent successfully
+      if (res && res.data && res.data.ok === true && res.data.userId) {
         // Temporarily save userId/email for verification
         sessionStorage.setItem('pending_userId', res.data.userId)
         sessionStorage.setItem('pending_email', form.email)
         navigate('/verify-otp')
+      } else {
+        // Backend returned error or incomplete response
+        setError(res?.data?.message || res?.data?.reason || 'Failed to send OTP. Please try again.')
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Signup failed')
+      // Network or other error
+      const errorMsg = err.response?.data?.message || err.response?.data?.reason || err.message || 'Signup failed. Please try again.'
+      setError(errorMsg)
     } finally { setLoading(false) }
   }
 

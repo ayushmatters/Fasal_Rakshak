@@ -9,6 +9,8 @@
     .otp { display:block; margin:20px auto; font-size:28px; letter-spacing:6px; font-weight:700; background:linear-gradient(90deg,#06b6d4,#34d399); color:#fff; width:180px; text-align:center; padding:12px 0; border-radius:8px;}
     .small { color:#64748b; font-size:13px }
     a.button { display:inline-block; background:#06b6d4; color:#06202a; padding:10px 14px; border-radius:8px; text-decoration:none; font-weight:600 }
+    .dev-note { background:#fef3c7; border-left: 4px solid #f59e0b; padding:12px; margin-top:20px; border-radius:4px; }
+    .dev-note p { margin: 4px 0; font-size:12px; color:#92400e; }
   </style>
 </head>
 <body>
@@ -21,8 +23,16 @@
     <p class="small">If the button below doesn't work, you can paste the OTP into the verification screen in the app.</p>
     <p><a class="button" href="{{VERIFICATION_LINK}}">Verify your email</a></p>
     <hr />
-    <p class="small">This is a demo email for development. In production, don't include local file paths or developer recordings.</p>
-    <p class="small">Demo video (dev only): /mnt/data/Recording 2025-11-19 203905.mp4</p>
+    
+    <!-- Local dev only - remove for production -->
+    <div class="dev-note">
+      <p><strong>🔧 Development/Testing Note:</strong></p>
+      <p>Demo recording: <a href="file:///mnt/data/Recording 2025-11-19 203905.mp4">Local Demo Video</a></p>
+      <p>This section should be removed before deploying to production.</p>
+    </div>
+    <!-- End dev section -->
+    
+    <p class="small">This is an automated message from Fasal Rakshak. Please do not reply to this email.</p>
   </div>
 </body>
 </html>
