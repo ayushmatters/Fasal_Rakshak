@@ -127,7 +127,9 @@ exports.signup = async (req, res, next) => {
       ok: true,
       message: 'OTP sent to email',
       userId: user._id,
-      requestId: emailResult.requestId || requestId
+      requestId: emailResult.requestId || requestId,
+      messageId: emailResult.messageId || null,
+      previewUrl: emailResult.previewUrl || null
     })
   } catch (err) {
     console.error(`[SIGNUP] [${requestId}] Error:`, err)
@@ -138,12 +140,20 @@ exports.signup = async (req, res, next) => {
 exports.verifyOtp = async (req, res, next) => {
   try {
     const { userId, email, otp } = req.body
-    if ((!userId && !email) || !otp) {
-      return res.status(400).json({ ok: false, message: 'Missing fields' })
+    // Dev-only logging to help debug verification issues
+    if (process.env.NODE_ENV !== 'production') {
+      try { console.debug('[VERIFY-OTP] incoming payload:', { userId, email, otp }) } catch (e) {}
+    }
+
+    // Guard: require either userId or email AND a valid OTP value
+    if ((!userId && !email) || (otp === undefined || otp === null || otp === '')) {
+      console.error('[VERIFY-OTP] Missing OTP or identifier:', { userId, email, otp })
+      return res.status(400).json({ ok: false, message: 'Missing fields: provide email or userId and a valid otp' })
     }
 
     const user = userId ? await User.findById(userId) : await User.findOne({ email })
     if (!user) {
+      console.warn('[VERIFY-OTP] User not found for:', { userId, email })
       return res.status(404).json({ ok: false, message: 'User not found' })
     }
 
@@ -152,6 +162,7 @@ exports.verifyOtp = async (req, res, next) => {
     }
 
     if (!user.otpHash || !user.otpExpiresAt) {
+      if (process.env.NODE_ENV !== 'production') try { console.debug('[VERIFY-OTP] missing otp fields on user:', { otpHash: !!user.otpHash, otpExpiresAt: user.otpExpiresAt }) } catch (e) {}
       return res.status(400).json({ ok: false, message: 'No OTP requested' })
     }
 
@@ -160,10 +171,38 @@ exports.verifyOtp = async (req, res, next) => {
     }
 
     if (new Date() > user.otpExpiresAt) {
+      if (process.env.NODE_ENV !== 'production') try { console.debug('[VERIFY-OTP] otp expired:', { now: new Date().toISOString(), otpExpiresAt: user.otpExpiresAt }) } catch (e) {}
       return res.status(400).json({ ok: false, message: 'OTP expired' })
     }
 
-    const match = await bcrypt.compare(otp.toString(), user.otpHash)
+    // Safely coerce OTP to a string for comparison; avoid calling string methods on undefined
+    let otpToCompare = null
+    if (typeof otp === 'string') {
+      otpToCompare = otp.trim()
+    } else if (typeof otp === 'number') {
+      otpToCompare = String(otp)
+    } else if (otp && typeof otp.toString === 'function') {
+      otpToCompare = otp.toString()
+    }
+
+    if (!otpToCompare) {
+      console.error('[VERIFY-OTP] OTP value is not a valid string:', { otp })
+      return res.status(400).json({ ok: false, message: 'Invalid OTP value' })
+    }
+
+    // Perform bcrypt compare using the safe string value
+    let match = false
+    try {
+      // Compare and log the comparison result (do not log raw OTP or hash in prod)
+      match = await bcrypt.compare(otpToCompare, user.otpHash)
+      if (process.env.NODE_ENV !== 'production') {
+        try { console.debug('[VERIFY-OTP] bcrypt.compare result for user:', { userId: String(user._id), match }) } catch (e) {}
+      }
+    } catch (compareErr) {
+      console.error('[VERIFY-OTP] Error comparing OTP:', compareErr)
+      return res.status(500).json({ ok: false, message: 'Internal error verifying OTP' })
+    }
+
     if (!match) {
       user.otpAttempts = (user.otpAttempts || 0) + 1
       await user.save()
@@ -180,12 +219,20 @@ exports.verifyOtp = async (req, res, next) => {
     await user.save()
 
     const token = signToken(user)
+    // Return well-formed user object with all fields defined as strings
+    const userResponse = {
+      id: String(user._id || ''),
+      name: user.name ? String(user.name) : '',
+      email: user.email ? String(user.email) : '',
+      role: user.role ? String(user.role) : 'farmer'
+    }
     return res.json({
       ok: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: userResponse
     })
   } catch (err) {
+    console.error('[VERIFY-OTP] Unexpected error:', err)
     next(err)
   }
 }
@@ -279,7 +326,9 @@ exports.resendOtp = async (req, res, next) => {
     return res.json({
       ok: true,
       message: 'OTP resent to email',
-      requestId: emailResult.requestId || requestId
+      requestId: emailResult.requestId || requestId,
+      messageId: emailResult.messageId || null,
+      previewUrl: emailResult.previewUrl || null
     })
   } catch (err) {
     console.error(`[RESEND-OTP] [${requestId}] Error:`, err)
@@ -299,7 +348,14 @@ exports.login = async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password)
     if (!match) return res.status(400).json({ message: 'Invalid credentials' })
     const token = signToken(user)
-    return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } })
+    // Return well-formed user object with all fields defined as strings
+    const userResponse = {
+      id: String(user._id || ''),
+      name: user.name ? String(user.name) : '',
+      email: user.email ? String(user.email) : '',
+      role: user.role ? String(user.role) : 'farmer'
+    }
+    return res.json({ token, user: userResponse })
   } catch (err) { next(err) }
 }
 

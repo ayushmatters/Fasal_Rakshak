@@ -17,6 +17,8 @@ const VerifyOtp = () => {
   }, [])
   const [otp, setOtp] = useState('')
   const [error, setError] = useState(null)
+  const [debugResp, setDebugResp] = useState(null)
+  const [debugErr, setDebugErr] = useState(null)
   const [loading, setLoading] = useState(false)
   const [resendDisabled, setResendDisabled] = useState(false)
   const [resendCount, setResendCount] = useState(0)
@@ -28,14 +30,26 @@ const VerifyOtp = () => {
   const handleVerify = async (e) => {
     e.preventDefault()
     setError(null)
+    setDebugErr(null)
+    setDebugResp(null)
     setLoading(true)
     try {
-      const body = { otp, userId, email }
+      const code = (otp || '').toString().trim()
+      const body = { otp: code, userId, email }
       const res = await verifyOtp(body)
+      try { console.debug('[VerifyOtp] verify response:', res) } catch (e) {}
+      setDebugResp(res?.data || null)
       if (res && res.data && res.data.token) {
+        // ensure token is stored (AuthProvider should set user/token too)
+        try { localStorage.setItem('token', res.data.token) } catch (e) {}
         navigate('/dashboard')
+      } else {
+        // show server message if verification did not return token
+        setError(res?.data?.message || 'Verification did not return a token')
       }
     } catch (err) {
+      try { console.error('[VerifyOtp] verify error:', err) } catch (e) {}
+      setDebugErr(err)
       setError(err.response?.data?.message || err.message || 'Verification failed')
       // simple anti-brute UI block
       setResendDisabled(true)
@@ -71,6 +85,13 @@ const VerifyOtp = () => {
           <button type="button" className="btn" onClick={handleResend} disabled={resendDisabled}>{resendDisabled ? 'Wait...' : `Resend OTP (${resendCount}/3)`}</button>
         </div>
       </form>
+      {/* Debug info (dev only) */}
+      {debugResp && (
+        <pre className="text-xs text-gray-500 mt-3">Response: {JSON.stringify(debugResp, null, 2)}</pre>
+      )}
+      {debugErr && (
+        <pre className="text-xs text-red-500 mt-3">Error: {JSON.stringify(debugErr?.response?.data || debugErr?.message || debugErr, null, 2)}</pre>
+      )}
     </div>
   )
 }

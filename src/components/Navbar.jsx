@@ -34,7 +34,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-text-muted">Hello, <strong className="text-accent">{user.name}</strong></span>
+              <span className="text-sm text-text-muted">Hello, <strong className="text-accent">{user?.name || 'User'}</strong></span>
               <button className="px-3 py-2 bg-secondary text-white rounded" onClick={() => { logout(); navigate('/') }}>Logout</button>
             </div>
           ) : (

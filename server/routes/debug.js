@@ -103,6 +103,13 @@ router.get('/transporter-status', (req, res) => {
 })
 
 /**
+ * Simple ping endpoint to check server reachability and origin header
+ */
+router.get('/ping', (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString(), origin: req.headers.origin || null })
+})
+
+/**
  * GET /api/debug/email-logs?limit=20
  * Retrieve email send logs (dev/debug only)
  */
@@ -122,6 +129,31 @@ router.get('/email-log/:requestId', (req, res) => {
     return res.status(404).json({ ok: false, error: 'Log not found' })
   }
   res.json(log)
+})
+
+/**
+ * GET /api/debug/user?email=... or /api/debug/user?id=...
+ * Development-only helper to view a user's document (redacts password)
+ */
+router.get('/user', async (req, res) => {
+  try {
+    const { email, id } = req.query
+    if (!email && !id) return res.status(400).json({ ok: false, error: 'Provide ?email= or ?id=' })
+    // require model dynamically to avoid circular dependency issues in some setups
+    const User = require('../models/User')
+    let user = null
+    if (id) user = await User.findById(id).lean()
+    else user = await User.findOne({ email }).lean()
+    if (!user) return res.status(404).json({ ok: false, error: 'User not found' })
+    // redact sensitive fields but keep OTP metadata for debugging
+    if (user.password) delete user.password
+    // Keep otpHash only if present but do not expose full hash in production
+    // (this is dev-only; ensure this route is not enabled in production)
+    return res.json({ ok: true, user })
+  } catch (err) {
+    console.error('[DEBUG] /user error:', err)
+    return res.status(500).json({ ok: false, error: err.message })
+  }
 })
 
 module.exports = router

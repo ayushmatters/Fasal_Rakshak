@@ -9,6 +9,26 @@ const dotenv = require('dotenv')
 
 dotenv.config()
 
+// Print safe startup info to help debug dev environment mismatches
+const logStartupInfo = () => {
+  try {
+    const port = process.env.PORT || '5000'
+    const frontend = process.env.FRONTEND_URL || 'not set'
+    const nodeEnv = process.env.NODE_ENV || 'development'
+    const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)
+    console.log('--- Startup info ---')
+    console.log('NODE_ENV:', nodeEnv)
+    console.log('Server will use PORT:', port)
+    console.log('FRONTEND_URL:', frontend)
+    console.log('SMTP configured:', smtpConfigured)
+    console.log('---------------------')
+  } catch (e) {
+    console.warn('Failed to print startup info', e && e.message)
+  }
+}
+
+logStartupInfo()
+
 const connectDB = require('./config/db')
 const { initTransporter } = require('./config/emailTransporter')
 
@@ -30,8 +50,16 @@ app.use(cors({
   origin: (origin, cb) => {
     // allow non-browser requests (e.g. curl) where origin is undefined
     if (!origin) return cb(null, true)
-    // allow any localhost origin during development (Vite may pick different ports)
-    if (origin.includes('localhost') || origin === process.env.FRONTEND_URL) return cb(null, true)
+    // allow common local dev origins (localhost and 127.0.0.1) or explicit FRONTEND_URL
+    try {
+      const isLocalhost = typeof origin === 'string' && (origin.includes('localhost') || origin.includes('127.0.0.1'))
+      const isFrontendMatch = origin === process.env.FRONTEND_URL
+      if (isLocalhost || isFrontendMatch) {
+        return cb(null, true)
+      }
+    } catch (e) {
+      // fall through to deny
+    }
     return cb(new Error('Not allowed by CORS'))
   },
   credentials: true
@@ -43,7 +71,13 @@ app.use(morgan('dev'))
 // In dev, log incoming requests with origin for easier CORS debugging
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    console.debug('[req]', req.method, req.originalUrl, 'Origin:', req.headers.origin || 'none')
+    const origin = req.headers.origin || 'none'
+    // Log concise request info and for OPTIONS preflight show headers
+    if (req.method === 'OPTIONS') {
+      console.debug('[req] PRELIGHT:', req.method, req.originalUrl, 'Origin:', origin, 'Access-Control-Request-Method:', req.headers['access-control-request-method'])
+    } else {
+      console.debug('[req]', req.method, req.originalUrl, 'Origin:', origin)
+    }
     return next()
   })
 }

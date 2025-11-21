@@ -31,7 +31,9 @@ const Signup = () => {
     } catch (err) {
       // Network or other error
       const errorMsg = err.response?.data?.message || err.response?.data?.reason || err.message || 'Signup failed. Please try again.'
-      setError(errorMsg)
+      // If it's a plain network/CORS error, append a short hint so user/developer can act
+      const hint = (!err.response) ? ' (network/CORS/timeout: check server logs and CORS settings)' : ''
+      setError(`${errorMsg}${hint}`)
     } finally { setLoading(false) }
   }
 

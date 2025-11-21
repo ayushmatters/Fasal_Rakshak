@@ -31,6 +31,20 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// Log response errors to make "Network Error" root causes visible in dev
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    try {
+      console.error('[apiClient] Response error:', err.message)
+      if (err.config) console.error('[apiClient] Request url:', err.config.url, 'method:', err.config.method)
+      if (err.response) console.error('[apiClient] Response status:', err.response.status, 'data:', err.response.data)
+      else console.error('[apiClient] No response received (network/CORS/timeout)')
+    } catch (e) {}
+    return Promise.reject(err)
+  }
+)
+
 try {
   const viteMeta = new Function('return import.meta')()
   if (viteMeta && viteMeta.env && viteMeta.env.DEV) {
