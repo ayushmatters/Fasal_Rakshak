@@ -17,7 +17,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-bg to-primary-dark">
       <Navbar />
-      <main>
+      <main className="pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/scan" element={<ScanPage />} />

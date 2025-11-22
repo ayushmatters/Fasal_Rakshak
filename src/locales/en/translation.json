@@ -1,0 +1,13 @@
+{
+  "welcome": "Welcome to Fasal Rakshak",
+  "home": "Home",
+  "scan": "Scan Crop",
+  "dashboard": "Dashboard",
+  "community": "Community",
+  "products": "Agri Products",
+  "contact": "Contact",
+  "sign_in": "Sign In",
+  "sign_up": "Sign Up",
+  "logout": "Logout",
+  "hello_user": "Hello, {{name}}"
+}

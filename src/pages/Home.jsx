@@ -17,9 +17,7 @@ const Hero = () => (
         </div>
       </div>
       <div className="animate-fadeIn">
-        <div className="bg-white rounded shadow-lg p-4 glass">
-          <img src="/src/assets/logo.svg" alt="hero" className="w-full h-48 object-cover rounded" />
-        </div>
+        <img src="/src/assets/hero.png" alt="Wheat crop scanning" className="w-full h-full object-cover rounded-lg shadow-lg" />
       </div>
     </div>
   </div>

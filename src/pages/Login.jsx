@@ -1,20 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../app/AuthProvider'
 
 const Login = () => {
-  const { login } = useAuth()
+  const { login, user, loading } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, loading, navigate])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    setLoading(true)
+    setIsLoading(true)
     try {
       const res = await login(form)
       if (res && res.data && res.data.token) {
@@ -27,7 +34,12 @@ const Login = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed')
-    } finally { setLoading(false) }
+    } finally { setIsLoading(false) }
+  }
+
+  // Don't render login form while loading auth state
+  if (loading) {
+    return <div className="h-screen w-full"></div>
   }
 
   return (
@@ -44,7 +56,7 @@ const Login = () => {
           <input name="password" type="password" value={form.password} onChange={handleChange} className="form-control" required />
         </div>
         <div>
-          <button className="btn btn--primary" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+          <button className="btn btn--primary" type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : 'Sign In'}</button>
         </div>
       </form>
     </div>

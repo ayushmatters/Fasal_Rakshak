@@ -1,12 +1,17 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import ScanResultCard from './ScanResultCard'
 import useOfflineQueue from '../../hooks/useOfflineQueue'
 import useNetworkStatus from '../../hooks/useNetworkStatus'
 import { uploadScanImage, startScanProcessing, getScanResult } from '../../api/endpoints'
+import { uploadToCloudinary } from '../../utils/cloudinary'
 
 const ScanPage = () => {
   const [result, setResult] = useState(null)
   const [message, setMessage] = useState('')
+  const [preview, setPreview] = useState(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
   const online = useNetworkStatus()
   const { enqueue, drain, peek } = useOfflineQueue()
 
@@ -20,29 +25,14 @@ const ScanPage = () => {
     }
 
     try {
-      setMessage('Uploading...')
-      // Upload to server
-      const resp = await uploadScanImage(file)
-      const id = resp?.data?.id || resp?.data?.scan?._id
-      setMessage('Upload accepted, processing...')
-      await startScanProcessing(id)
-      // Poll for result
-      let attempts = 0
-      const poll = async () => {
-        attempts += 1
-        const r = await getScanResult(id)
-        if (r.data && r.data.status === 'complete') {
-          setResult(r.data.result)
-          setMessage('Scan completed')
-        } else if (attempts < 10) {
-          setTimeout(poll, 700)
-        } else {
-          setMessage('Scan still processing; please refresh later')
-        }
-      }
-      poll()
+      setMessage('Uploading to Cloudinary...')
+      // Upload to Cloudinary directly
+      const cloudinaryUrl = await uploadToCloudinary(file)
+      setPreview(cloudinaryUrl)
+      setMessage('Upload successful! Image ready for analysis.')
     } catch (e) {
-      setMessage('Upload failed — queued for retry')
+      console.error('Upload error:', e)
+      setMessage(`Upload failed: ${e.message}`)
       enqueue(payload)
     }
   }, [online, enqueue])
@@ -68,6 +58,59 @@ const ScanPage = () => {
     if (f) handleFile(f)
   }
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      })
+      setShowCamera(true)
+      // Ensure video element gets the stream
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.play().catch(err => {
+            setMessage('Error playing video: ' + err.message)
+          })
+        }
+      }, 100)
+    } catch (err) {
+      console.error('Camera error:', err)
+      setMessage('Camera access denied. Please allow camera permissions.')
+    }
+  }
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop())
+    }
+    setShowCamera(false)
+  }
+
+  const capturePhoto = async () => {
+    if (canvasRef.current && videoRef.current) {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      
+      canvas.toBlob((blob) => {
+        const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' })
+        setPreview(canvas.toDataURL())
+        handleFile(file)
+        stopCamera()
+      }, 'image/jpeg', 0.95)
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="bg-white rounded-lg shadow p-4">
@@ -80,11 +123,33 @@ const ScanPage = () => {
             <div className="mt-2 text-sm text-gray-500">Upload Image</div>
           </div>
           <div className="border p-4 rounded">
-            <div className="h-40 bg-gray-50 flex items-center justify-center text-gray-400">Preview image</div>
-            <div className="mt-3 flex gap-2">
-              <button className="px-3 py-2 bg-primary text-white rounded">Analyze Crop Disease</button>
-              <button className="px-3 py-2 border rounded">Camera Capture</button>
-            </div>
+            {!showCamera ? (
+              <>
+                <div className="h-40 bg-gray-50 flex items-center justify-center text-gray-400 rounded">
+                  {preview ? <img src={preview} alt="Preview" className="w-full h-full object-cover rounded" /> : 'Preview image'}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button className="px-3 py-2 bg-primary text-white rounded flex-1">Analyze Crop Disease</button>
+                  <button onClick={startCamera} className="px-3 py-2 border rounded flex-1">Camera Capture</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-40 bg-black rounded object-cover"
+                  style={{ display: 'block' }}
+                />
+                <canvas ref={canvasRef} className="hidden" />
+                <div className="mt-3 flex gap-2">
+                  <button onClick={capturePhoto} className="px-3 py-2 bg-green-600 text-white rounded flex-1">Capture</button>
+                  <button onClick={stopCamera} className="px-3 py-2 border rounded flex-1">Cancel</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="mt-3">

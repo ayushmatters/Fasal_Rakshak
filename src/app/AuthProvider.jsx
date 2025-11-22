@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { signup as apiSignup, login as apiLogin, getMe as apiGetMe, logout as apiLogout } from '../api/endpoints'
+import i18n from '../i18n'
 
 const AuthContext = createContext(null)
 
@@ -10,12 +11,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const normalizeUser = (u = {}) => {
-    const src = u || {}
-    return {
-      id: (src.id || src._id) ? String(src.id || src._id) : null,
-      name: src?.name ? String(src.name) : '',
-      email: src?.email ? String(src.email) : '',
-      role: (String(src?.role || '')).toUpperCase() || 'FARMER'
+    try {
+      const src = u || {}
+      return {
+        id: (src.id || src._id) ? String(src.id || src._id) : null,
+        name: src?.name ? String(src.name) : '',
+        email: src?.email ? String(src.email) : '',
+        role: src?.role ? String(src.role).toUpperCase() : 'FARMER',
+        language: src?.language ? String(src.language) : (localStorage.getItem('language') || 'en')
+      }
+    } catch (e) {
+      try { console.error('[AuthProvider] normalizeUser failed:', e) } catch (err) {}
+      return { id: null, name: '', email: '', role: 'FARMER' }
     }
   }
 
@@ -58,14 +65,13 @@ export const AuthProvider = ({ children }) => {
         if (import.meta.env?.DEV) {
           try { console.debug('[AuthProvider] login user payload:', u) } catch (e) {}
         }
-      // normalize user object: ensure all fields are defined strings before operations
-      const normalizedUser = {
-        id: (u.id || u._id) ? String(u.id || u._id) : null,
-        name: u?.name ? String(u.name) : '',
-        email: u?.email ? String(u.email) : '',
-        role: (String(u?.role || '')).toUpperCase() || 'FARMER'
+      // normalize user object using helper
+      const nu = normalizeUser(u)
+      setUser(nu)
+      // If backend provides a saved language preference, switch i18n to it
+      if (nu.language) {
+        try { i18n.changeLanguage(nu.language) } catch (e) {}
       }
-      setUser(normalizedUser)
     }
     return res
   }
@@ -87,13 +93,11 @@ export const AuthProvider = ({ children }) => {
         if (import.meta.env?.DEV) {
           try { console.debug('[AuthProvider] verify user payload:', u) } catch (e) {}
         }
-        const normalizedUser = {
-          id: (u.id || u._id) ? String(u.id || u._id) : null,
-          name: u?.name ? String(u.name) : '',
-          email: u?.email ? String(u.email) : '',
-          role: (String(u?.role || '')).toUpperCase() || 'FARMER'
+        const nu = normalizeUser(u)
+        setUser(nu)
+        if (nu.language) {
+          try { i18n.changeLanguage(nu.language) } catch (e) {}
         }
-        setUser(normalizedUser)
       }
       return res
     } catch (err) {

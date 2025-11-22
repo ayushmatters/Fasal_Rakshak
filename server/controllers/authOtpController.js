@@ -7,6 +7,13 @@ const User = require('../models/User')
 const { sendEmail, generateRequestId } = require('../config/emailTransporter')
 const { logEmailSend } = require('../middleware/emailLogger')
 
+// Helper: safe-case-insensitive email lookup
+const escapeRegex = (s = '') => s.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')
+const findUserByEmailCi = (email) => {
+  if (!email) return null
+  return User.findOne({ email: { $regex: `^${escapeRegex(String(email))}$`, $options: 'i' } })
+}
+
 // Helper: sign JWT (7d)
 const signToken = (user) => jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' })
 
@@ -51,7 +58,7 @@ exports.signup = async (req, res, next) => {
       return res.status(429).json({ ok: false, message: 'Too many signup attempts from this IP', requestId })
     }
 
-    const existing = await User.findOne({ email })
+    const existing = await findUserByEmailCi(email)
     if (existing) {
       return res.status(400).json({ ok: false, message: 'Email already in use' })
     }
@@ -151,7 +158,7 @@ exports.verifyOtp = async (req, res, next) => {
       return res.status(400).json({ ok: false, message: 'Missing fields: provide email or userId and a valid otp' })
     }
 
-    const user = userId ? await User.findById(userId) : await User.findOne({ email })
+    const user = userId ? await User.findById(userId) : await findUserByEmailCi(email)
     if (!user) {
       console.warn('[VERIFY-OTP] User not found for:', { userId, email })
       return res.status(404).json({ ok: false, message: 'User not found' })
@@ -245,7 +252,7 @@ exports.resendOtp = async (req, res, next) => {
       return res.status(400).json({ ok: false, message: 'Missing fields' })
     }
 
-    const user = userId ? await User.findById(userId) : await User.findOne({ email })
+    const user = userId ? await User.findById(userId) : await findUserByEmailCi(email)
     if (!user) {
       return res.status(404).json({ ok: false, message: 'User not found' })
     }
@@ -341,7 +348,7 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body
     if (!email || !password) return res.status(400).json({ message: 'Missing fields' })
-    const user = await User.findOne({ email })
+    const user = await findUserByEmailCi(email)
     if (!user) return res.status(400).json({ message: 'Invalid credentials' })
     // Block login if not verified
     if (!user.isVerified) return res.status(403).json({ message: 'Email not verified' })

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './styles/index.css'
 import AuthProvider from './app/AuthProvider'
+import './i18n'
 
 if (import.meta.env.DEV) {
   import('./api/mockServer')
